@@ -1,0 +1,11 @@
+{
+  "site_id": "demo_plant",
+  "timestamp": "2024-04-01T08:00:00",
+  "flow_rate": 120.0,
+  "residual_chlorine": 0.6,
+  "turbidity": 4.2,
+  "sensors": {
+    "ph": 7.1,
+    "temperature_c": 24.5
+  }
+}

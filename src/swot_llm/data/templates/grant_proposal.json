@@ -1,0 +1,11 @@
+{
+  "name": "grant_proposal",
+  "version": "1.0",
+  "latex_preamble": "\\documentclass{article}",
+  "sections": {
+    "Executive Summary": "Provide a succinct overview of the project.",
+    "Technical Approach": "Detail the chlorination strategy and infrastructure.",
+    "Implementation Plan": "Outline phases, staffing, and monitoring.",
+    "Budget Justification": "Explain cost drivers and sustainability."
+  }
+}

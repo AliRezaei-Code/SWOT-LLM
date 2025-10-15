@@ -1,0 +1,10 @@
+{
+  "id": "doc_chlorination_basics",
+  "title": "Chlorination Basics",
+  "source": "internal_manual",
+  "metadata": {
+    "category": "operations",
+    "version": "2023-10"
+  },
+  "content": "Chlorination ensures safe drinking water by maintaining a residual of 0.5 to 1.0 mg/L. Operators should adjust dosing based on flow, demand, and seasonal changes. Maintain turbidity below 5 NTU prior to chlorination for best performance."
+}
