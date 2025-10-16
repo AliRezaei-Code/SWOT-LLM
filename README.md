@@ -19,8 +19,9 @@ Water Quality Technical Assistant (WQTA) is an AI-powered assistant focused on c
 
 ## Front-End Status
 - React + TypeScript + Vite scaffold lives in `web/`.
-- Layout shell includes navigation for internal drafting and telemetry modules.
+- Layout shell includes navigation for internal drafting, templates, telemetry dashboards, daily runs, and records.
 - Tailwind CSS provides rapid UI iteration with a dark-theme baseline.
+- Draft workspace now mirrors the multi-step flow defined in the design brief, and telemetry/records views provide placeholders for RAG outputs.
 
 ## Back-End Plan
 - `server/` (to be scaffolded) will host an Express application with modular routers.
