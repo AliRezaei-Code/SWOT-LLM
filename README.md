@@ -8,24 +8,38 @@ Water Quality Technical Assistant (WQTA) is an AI-powered assistant focused on c
 - Capture conversation history, prompt context, and citations for downstream auditing.
 
 ## Tech Stack
-- **React + Vite (TypeScript):** Single-page chat experience with conversation state, citation cards, and prompt helpers.
-- **Express + Node:** REST endpoint that orchestrates retrieval augmented generation. Currently a stub ready for integration.
-- **MongoDB (planned):** Persistent storage for chat transcripts, document chunks, and retrieval metadata.
+- **React + Vite (TypeScript):** Single-page chat interface with live token streaming, conversation history, and citation sidebar.
+- **Express + Node:** Retrieval-augmented generation API featuring history-aware query rewriting, local embeddings, MongoDB Atlas Vector Search, and Ollama-backed generation.
+- **MongoDB Atlas:** Unified store for corpus chunks (vector index) and chat history records.
+- **LangChain.js:** Orchestrates ingestion, retrieval, and prompt construction while remaining fully local.
 
-## Current Status
-- `web/` contains a work-in-progress chat UI: message list, citation sidebar, and controls for prompt regeneration (pending backend wiring).
-- `server/` exposes health and `/api/chat` placeholder routes to be connected to the RAG pipeline.
-- `wqta-project.md` retains the comprehensive product brief for future expansion, but the active implementation targets the RAG chat experience only.
+## Features
+- Streaming `/api/chat` endpoint that emits conversation IDs, retrieval citations, and assistant tokens in real time via Server-Sent Events.
+- Conversation persistence in MongoDB to support follow-up queries and auditing.
+- Local embeddings powered by `@xenova/transformers` and lightweight LLM inference via Ollama.
+- Ingestion CLI (`npm run ingest` in `server/`) to chunk Markdown/Text documents and populate the MongoDB vector index.
 
-## Local Development
-- `web/`: `npm install && npm run dev` (or `npm run dev -- --host`) launches the chat UI on `http://localhost:5173` (or the next free port).
-- `server/`: `npm install && npm run dev` starts the Express API with hot reload on `http://localhost:4000`.
-- Copy `server/.env.example` to `server/.env` and adjust `ALLOW_CORS_ORIGINS` if the front-end runs on a different origin.
+## Prerequisites
+- Node.js 18+
+- MongoDB Atlas (or local MongoDB ≥ 6.0.11) with Vector Search enabled.
+- [Ollama](https://ollama.com/) installed locally and configured with a lightweight model such as `llama3:8b` or `gemma2:2b`.
+
+## Setup
+- `cp server/.env.example server/.env` and adjust the following:
+  - `MONGODB_URI`, `MONGODB_DB_NAME`, `MONGODB_VECTOR_COLLECTION`, `MONGODB_VECTOR_INDEX`
+  - `OLLAMA_BASE_URL`, `OLLAMA_MODEL`
+  - `ALLOW_CORS_ORIGINS` if the UI is hosted elsewhere
+- Add Markdown or text files to `data/corpus/` (configurable via `CORPUS_DIR` env var).
+- Start Ollama: `ollama serve` (and pull the model specified in `.env`).
+- Run ingestion: `cd server && npm install && npm run ingest`.
+- Launch services:
+  - UI: `cd web && npm install && npm run dev`
+  - API: `cd server && npm run dev`
 
 ## Next Steps
-1. Connect `/api/chat` to the retrieval pipeline (chunking, embedding, search, LLM call).
-2. Persist conversation turns and citation metadata in MongoDB.
-3. Add evaluation hooks (feedback buttons, prompt replay) to tune model prompts.
-4. Layer in authentication/role controls if the chat will be exposed beyond internal users.
+1. Add table/figure-aware loaders to preserve structured telemetry data during ingestion.
+2. Implement post-retrieval reranking to tighten answer precision.
+3. Introduce user feedback signals and quality scoring for continuous prompt tuning.
+4. Layer in authentication/authorization before exposing the assistant beyond internal use.
 
 Contributions are welcome. Please open an issue or pull request to discuss architecture or implementation choices.

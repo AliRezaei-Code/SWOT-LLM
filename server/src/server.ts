@@ -7,8 +7,10 @@ const app = createApp();
 
 const start = async () => {
   try {
-    await mongoose.connect(environment.mongoUri);
-    console.log(`[server] Connected to MongoDB at ${environment.mongoUri}`);
+    await mongoose.connect(environment.mongoUri, { dbName: environment.mongoDbName });
+    console.log(
+      `[server] Connected to MongoDB at ${environment.mongoUri}/${environment.mongoDbName}`
+    );
 
     app.listen(environment.port, () => {
       console.log(`[server] Listening on http://localhost:${environment.port}`);
