@@ -3,47 +3,29 @@
 Water Quality Technical Assistant (WQTA) is an AI-powered assistant focused on chlorination program support. It starts as an internal automation tool for grant writing and evolves into an external-facing troubleshooting companion once the core workflow is stable.
 
 ## Goals
-- Deliver a browser-based assistant that guides staff through grant workflows with polished UI/UX.
-- Provide dosing guidance, operational recommendations, and safety scoring when telemetry is available.
-- Keep all advice grounded in an auditable knowledge base built from internal documentation, with optional external references.
+- Deliver a streamlined browser-based chat assistant for water-quality operations teams.
+- Provide answers grounded in the internal knowledge base, with retrieved snippets surfaced alongside every reply.
+- Capture conversation history, prompt context, and citations for downstream auditing.
 
-## Product Scope
-- **Phase 1 – Internal mode:** Responsive web application that supports template selection, corpus-grounded drafting, and LaTeX-ready exports through a guided UI.
-- **Phase 2 – External mode:** practitioner experience with telemetry dashboards, dose calculators, and safety scoring.
+## Tech Stack
+- **React + Vite (TypeScript):** Single-page chat experience with conversation state, citation cards, and prompt helpers.
+- **Express + Node:** REST endpoint that orchestrates retrieval augmented generation. Currently a stub ready for integration.
+- **MongoDB (planned):** Persistent storage for chat transcripts, document chunks, and retrieval metadata.
 
-## MERN Stack Direction
-- **MongoDB:** Operational data, telemetry snapshots, and generated records stored as documents with clear audit trails.
-- **Express + Node:** API surface that orchestrates retrieval augmentation, validation, and downstream integrations.
-- **React + Vite:** Responsive front-end with guided flows for drafting, telemetry insights, and operator guidance.
-- **Shared Types:** TypeScript types shared between client and server for end-to-end consistency.
-
-## Front-End Status
-- React + TypeScript + Vite scaffold lives in `web/`.
-- Layout shell includes navigation for internal drafting, templates, telemetry dashboards, daily runs, and records.
-- Tailwind CSS provides rapid UI iteration with a dark-theme baseline.
-- Draft workspace now mirrors the multi-step flow defined in the design brief, and telemetry/records views provide placeholders for RAG outputs.
-
-## Back-End Plan
-- `server/` (to be scaffolded) will host an Express application with modular routers.
-- MongoDB access via Mongoose or native driver (decision pending during schema design).
-- RAG pipeline adapters and telemetry ingestion will be exposed as REST endpoints.
-- Authentication and authorization strategy under evaluation (initially local-only).
-
-## Repository Status
-- Early MERN scaffolding phase.
-- `wqta-project.md` captures the draft product brief and diagrams that drive implementation priorities.
-- React front-end shell implemented; backend scaffolding underway.
+## Current Status
+- `web/` contains a work-in-progress chat UI: message list, citation sidebar, and controls for prompt regeneration (pending backend wiring).
+- `server/` exposes health and `/api/chat` placeholder routes to be connected to the RAG pipeline.
+- `wqta-project.md` retains the comprehensive product brief for future expansion, but the active implementation targets the RAG chat experience only.
 
 ## Local Development
-- `web/`: `npm install && npm run dev` to launch the front-end on `http://localhost:5173`.
-- `server/`: `npm install && npm run dev` to start the Express API with hot reload on `http://localhost:4000`.
-- Ensure MongoDB is running locally or update `server/.env` to point at your cluster before starting the API.
-- Update `ALLOW_CORS_ORIGINS` in `.env` if the front-end runs on a different origin.
+- `web/`: `npm install && npm run dev` (or `npm run dev -- --host`) launches the chat UI on `http://localhost:5173` (or the next free port).
+- `server/`: `npm install && npm run dev` starts the Express API with hot reload on `http://localhost:4000`.
+- Copy `server/.env.example` to `server/.env` and adjust `ALLOW_CORS_ORIGINS` if the front-end runs on a different origin.
 
 ## Next Steps
-1. Scaffold Express server with health, corpus, and draft-generation placeholder routes.
-2. Define MongoDB schemas for documents, templates, telemetry, and recommendations.
-3. Implement internal drafting wizard with corpus search and output preview panes.
-4. Connect front-end to backend APIs for corpus listing and draft generation.
+1. Connect `/api/chat` to the retrieval pipeline (chunking, embedding, search, LLM call).
+2. Persist conversation turns and citation metadata in MongoDB.
+3. Add evaluation hooks (feedback buttons, prompt replay) to tune model prompts.
+4. Layer in authentication/role controls if the chat will be exposed beyond internal users.
 
 Contributions are welcome. Please open an issue or pull request to discuss architecture or implementation choices.
