@@ -1069,7 +1069,7 @@ export default function WelcomeEmail({ userName, courseTitle }: WelcomeEmailProp
 
 ## 20) Immediate Next Steps (from fresh clone)
 
-1. Copy `.env.example` → `.env.local` and populate the variables listed in **§9.1** for development.
+1. Copy `.env.example` → `.env.local` (file lives at repo root) and populate the variables listed in **§9.1** for development.
 2. Run `pnpm install`, then `pnpm prisma migrate deploy` and `pnpm prisma db seed` to ensure the schema & sample data are in place.
 3. Start the dev server with `pnpm turbo dev --filter=apps/web` and verify Clerk sign-in, instructor routes, and student dashboard load.
 4. Trigger the Clerk webhook locally via `clerk events send user.created` and confirm Prisma users sync.
