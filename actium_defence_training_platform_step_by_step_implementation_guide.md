@@ -6,7 +6,8 @@
 
 ## 0) Repo & Environment Bootstrapping (Day 0)
 
-**0.1 Create monorepo skeleton**
+### 0.1 Create monorepo skeleton
+
 - `apps/web` — Next.js (App Router)
 - `packages/ui` — shared components (shadcn/ui)
 - `packages/config` — tsconfig, eslint, tailwind presets
@@ -19,7 +20,8 @@ cd actium
 pnpm install
 ```
 
-**0.2 Baseline config**
+### 0.2 Baseline config
+
 - Add files: `.nvmrc`, `.editorconfig`, `turbo.json`, `tsconfig.base.json`, `.gitignore`.
 - Enable shadcn/ui in `apps/web`.
 
@@ -29,11 +31,13 @@ pnpm dlx shadcn@latest init -d
 pnpm dlx shadcn@latest add button card input textarea dialog dropdown-menu avatar progress badge tabs toast scroll-area skeleton
 ```
 
-**0.3 Vercel project & envs**
+### 0.3 Vercel project & envs
+
 - Create Vercel project (Production → `main`, Preview → PRs, Development → local).
 - Add environment variables placeholders (see §9.1).
 
-**0.4 GitHub & CI**
+### 0.4 GitHub & CI
+
 - Connect repo to Vercel.
 - Add CI workflow (see §10). Protect `main` branch (require CI).
 
@@ -41,10 +45,12 @@ pnpm dlx shadcn@latest add button card input textarea dialog dropdown-menu avata
 
 ## 1) Database & Prisma (Day 1–2)
 
-**1.1 Provision Postgres**
+### 1.1 Provision Postgres
+
 - Use Neon, Supabase, or Railway. Create **prod**, **staging**, **dev** DBs.
 
-**1.2 Add Prisma**
+### 1.2 Add Prisma
+
 ```bash
 cd apps/web
 pnpm add -D prisma
@@ -52,7 +58,8 @@ pnpm add @prisma/client
 pnpm prisma init --datasource-provider postgresql
 ```
 
-**1.3 Schema**
+### 1.3 Schema
+
 - Paste the provided schema (Users, Courses, Modules, Lessons, Resources, MuxData, Enrollment, LessonProgress, CourseSchedule, StudentScheduleSubscription).
 - Add indices noted in the blueprint.
 
@@ -266,7 +273,8 @@ model AuditLog {
 }
 ```
 
-**1.4 Migrations**
+### 1.4 Migrations
+
 ```bash
 # local
 export DATABASE_URL='postgresql://...dev'
@@ -274,7 +282,8 @@ pnpm prisma migrate dev --name init
 pnpm prisma generate
 ```
 
-**1.5 Seed script (optional)**
+### 1.5 Seed script (optional)
+
 - Create `prisma/seed.ts` to insert a demo instructor, course skeleton, and sample lessons.
 
 ```ts
@@ -378,7 +387,8 @@ main()
 pnpm prisma db seed
 ```
 
-**1.6 Generate client & prime databases**
+### 1.6 Generate client & prime databases
+
 - For each environment (`dev`, `staging`, `prod`) run the migration against the corresponding `DATABASE_URL`.
 
 ```bash
@@ -420,22 +430,26 @@ if (process.env.NODE_ENV !== 'production') {
 
 ## 2) Authentication & RBAC with Clerk (Day 2–3)
 
-**2.1 Install & configure**
+### 2.1 Install & configure
+
 ```bash
 pnpm add @clerk/nextjs
 ```
 - In Clerk dashboard: add application → retrieve `NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY`, `CLERK_SECRET_KEY`.
 - Webhooks → user created/updated → `api/webhooks/clerk`.
 
-**2.2 App setup**
+### 2.2 App setup
+
 - Wrap root layout with `<ClerkProvider/>`.
 - Create `/sign-in`, `/sign-up`, `/user` routes using Clerk components.
 
-**2.3 Sync users & roles**
+### 2.3 Sync users & roles
+
 - On user creation webhook: insert/find `User` by `clerkId`, copy email/name/image; set default role `STUDENT`.
 - Use the Svix‑verified webhook handler described in **§15.6** to upsert Clerk users into Prisma.
 
-**2.4 Middleware for protected routes**
+### 2.4 Middleware for protected routes
+
 ```ts
 // apps/web/src/middleware.ts
 import { auth } from '@clerk/nextjs/server'
@@ -451,47 +465,58 @@ export function middleware(req: Request) {
 export const config = { matcher: ['/instructor/:path*'] }
 ```
 
-**2.5 Role management UI (admin‑only)**
+### 2.5 Role management UI (admin‑only)
+
 - Simple page to promote users to `INSTRUCTOR`.
 
 ---
 
 ## 3) Storage: Vercel Blob for PDFs/Images (Day 3)
 
-**3.1 Install** `pnpm add @vercel/blob`
+### 3.1 Install
 
-**3.2 Client‑direct uploads**
+- Run `pnpm add @vercel/blob`.
+
+### 3.2 Client‑direct uploads
+
 - Create an upload URL route `/api/blob/upload` (server) returning temporary upload URL.
 - Use client `fetch` + `FormData` to PUT file → store returned blob url in `Resource`.
 - Enforce **immutability** (`addRandomSuffix: true`).
 
-**3.3 Secure downloads**
+### 3.3 Secure downloads
+
 - Route `/api/download/resource/[id]` checks enrollment → returns signed URL (5 min expiry).
 
 ---
 
 ## 4) Video: Mux Integration (Day 3–4)
 
-**4.1 Install** `pnpm add @mux/mux-node @mux/mux-player-react`
+### 4.1 Install
 
-**4.2 Upload flow**
+- Run `pnpm add @mux/mux-node @mux/mux-player-react`.
+
+### 4.2 Upload flow
+
 - Instructor uploads → server action calls Mux **Direct Upload** API → returns `uploadUrl` → client PUTs the file.
 - On Mux webhook (asset.ready): write `MuxData { assetId, playbackId, duration }` and link to `Resource`.
 
-**4.3 Secure playback**
+### 4.3 Secure playback
+
 - Enable **signed playback** policy → backend issues short‑lived JWT → `<MuxPlayer playbackId={signedId} />`.
 
 ---
 
 ## 5) Background Jobs: Inngest (Day 4)
 
-**5.1 Install & init**
+### 5.1 Install & init
+
 ```bash
 pnpm add inngest
 ```
 - Configure Inngest app, connect to Vercel.
 
-**5.2 Events & functions**
+### 5.2 Events & functions
+
 - `user.enrolled` → send welcome email (Resend) + in‑app notification.
 - `session.approaching` (cron) → `step.sleepUntil` → email 1h before.
 - `video.uploaded` → wait for Mux webhook → update lesson resource status.
@@ -500,33 +525,40 @@ pnpm add inngest
 
 ## 6) Instructor Workspace (Day 4–10)
 
-**6.1 Instructor dashboard**
+### 6.1 Instructor dashboard
+
 - Route: `/instructor`
 - Cards/table: Courses (Draft/Published), enrollments, completion rates.
 
-**6.2 Course builder**
+### 6.2 Course builder
+
 - Routes: `/instructor/courses`, `/instructor/courses/[id]`
 - Drag‑and‑drop modules/lessons (order fields), publish toggles, resource manager.
 - Rich text editor for lesson content (e.g., TipTap or simple Markdown).
 
-**6.3 Live schedule tool**
+### 6.3 Live schedule tool
+
 - CRUD `CourseSchedule`: start/end UTC, timezone, location, capacity. Validate with Zod.
 
 ---
 
 ## 7) Student Experience (Day 8–14)
 
-**7.1 Marketplace & discovery**
+### 7.1 Marketplace & discovery
+
 - Public routes: `/courses`, `/courses/[id]` with instructor card, syllabus, CTA.
 
-**7.2 Enrollment flow**
+### 7.2 Enrollment flow
+
 - Free MVP: click **Enroll** → create `Enrollment` row → redirect to dashboard.
 - Paid (later): Stripe Checkout → upon success create `Purchase` and `Enrollment`.
 
-**7.3 Student dashboard**
+### 7.3 Student dashboard
+
 - `/dashboard` with: **My Courses** (cards + progress bar), **Upcoming Sessions**, **Recent Activity**, **Achievements**.
 
-**7.4 Course consumption**
+### 7.4 Course consumption
+
 - Lesson page with sidebar (modules/lessons), Mux Player, PDF viewer, resources list.
 - "Mark complete" → Server Action updates `LessonProgress` (optimistic UI).
 
@@ -534,20 +566,23 @@ pnpm add inngest
 
 ## 8) Calendar Subscription (Day 12–14)
 
-**8.1 ICS route**
+### 8.1 ICS route
+
 - `/api/calendar/[secret].ics` (unguessable per user). Use `ical-generator`.
 - Query user’s `StudentScheduleSubscription` → generate events using stored `timezone`.
 - Headers: `Content-Type: text/calendar; charset=utf-8` and `Cache-Control: no-store`.
 
-**8.2 UI**
+### 8.2 UI
+
 - In **Upcoming Sessions** widget: “Add to Calendar (subscribe)”.
 
 ---
 
 ## 9) Observability, Analytics, Email (Day 10–15)
 
-**9.1 Env vars (reference)**
-```
+### 9.1 Env vars (reference)
+
+```env
 # Clerk
 NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY=
 CLERK_SECRET_KEY=
@@ -575,16 +610,19 @@ UPSTASH_REDIS_REST_URL=
 UPSTASH_REDIS_REST_TOKEN=
 ```
 
-**9.2 Sentry**
+### 9.2 Sentry
+
 - `pnpm add @sentry/nextjs`
 - `npx @sentry/wizard -i nextjs`
 - Enable tracing + session replay.
 
-**9.3 PostHog**
+### 9.3 PostHog
+
 - `pnpm add posthog-js`
 - Init in client layout; track funnels: enrollment & creation.
 
-**9.4 Resend + React Email**
+### 9.4 Resend + React Email
+
 - `pnpm add resend @react-email/components`
 - `apps/web/emails/` with templates: Welcome, Enrollment, Session Reminder.
 - Send via Inngest functions.
@@ -593,47 +631,57 @@ UPSTASH_REDIS_REST_TOKEN=
 
 ## 10) Security & Rate Limiting (Day 12–16)
 
-**10.1 Zod validation**
+### 10.1 Zod validation
+
 - All server actions & routes parse/validate input.
 
-**10.2 Security headers**
+### 10.2 Security headers
+
 - Middleware adds CSP, HSTS, X-Frame-Options, X-Content-Type-Options.
 
-**10.3 Rate limit**
+### 10.3 Rate limit
+
 - `pnpm add @upstash/ratelimit @upstash/redis`
 - Apply to `/api/auth/*`, enrollment, and any heavy routes.
 
-**10.4 Audit log**
+### 10.4 Audit log
+
 - Add `AuditLog` model; log sensitive actions.
 
 ---
 
 ## 11) Testing Strategy (Day 12–18)
 
-**11.1 Unit/Integration**
+### 11.1 Unit/Integration
+
 - `pnpm add -D vitest @testing-library/react jsdom`
 - Test hooks, utils, RBAC guards, server actions (mock Prisma).
 
-**11.2 E2E with Playwright**
+### 11.2 E2E with Playwright
+
 - `pnpm dlx playwright@latest install`
 - Flows: instructor creates course; student enrolls; completes lesson; calendar subscription link reachable.
 
-**11.3 CI gating**
+### 11.3 CI gating
+
 - GitHub Actions runs lint, typecheck, unit, E2E (on PR).
 
 ---
 
 ## 12) Deployment & Ops (Day 16–20)
 
-**12.1 Vercel**
+### 12.1 Vercel
+
 - Link project, set env vars per environment.
 - Enable cron for daily `session.approaching` precursor emitter.
 
-**12.2 Incident response**
+### 12.2 Incident response
+
 - Sentry alerts → Slack channel `#incidents` (via webhook).
 - Post‑mortem template in repo.
 
-**12.3 Status page (nice‑to‑have)**
+### 12.3 Status page (nice‑to‑have)
+
 - Use Instatus or Better Stack.
 
 ---
@@ -650,20 +698,23 @@ UPSTASH_REDIS_REST_TOKEN=
 
 ## 14) Tickets Backlog (copy/paste to Issues)
 
-**Epic: Core Data & Auth**
+### Epic: Core Data & Auth
+
 1. Add Prisma schema & run migrations.
 2. Implement Clerk auth, layouts, sign‑in/up.
 3. Webhook to sync Clerk → Prisma User.
 4. Role middleware & admin role page.
 
-**Epic: Instructor Studio**
+### Epic: Instructor Studio
+
 5. Instructor dashboard shell.
 6. Course CRUD + publish toggle.
 7. Module & lesson DnD ordering.
 8. Resource manager (Blob + Mux upload).
 9. Live schedule CRUD with Zod validation.
 
-**Epic: Student Experience**
+### Epic: Student Experience
+
 10. Courses listing & detail page.
 11. Enrollment server action.
 12. Student dashboard with progress bars.
@@ -671,13 +722,15 @@ UPSTASH_REDIS_REST_TOKEN=
 14. Mark lesson complete (optimistic UI).
 15. ICS subscription route & UI.
 
-**Epic: Jobs & Notifications**
+### Epic: Jobs & Notifications
+
 16. Inngest app setup.
 17. `user.enrolled` → welcome email (Resend).
 18. Daily cron → `session.approaching` events.
 19. Reminder 24h/1h before session.
 
-**Epic: Quality, Security, Analytics**
+### Epic: Quality, Security, Analytics
+
 20. Sentry setup (errors, tracing, replay).
 21. PostHog events (funnels, retention cohorts).
 22. Upstash rate limiting middleware.
@@ -688,7 +741,8 @@ UPSTASH_REDIS_REST_TOKEN=
 
 ## 15) Example Code Snippets
 
-**15.1 Server Action (enroll)**
+### 15.1 Server Action (enroll)
+
 ```ts
 'use server'
 import { db } from '@/lib/db'
@@ -708,7 +762,8 @@ export async function enrollAction(formData: FormData) {
 }
 ```
 
-**15.2 Secure resource download**
+### 15.2 Secure resource download
+
 ```ts
 // app/api/download/resource/[id]/route.ts
 import { NextResponse } from 'next/server'
@@ -724,7 +779,8 @@ export async function GET(_: Request, { params }: { params: { id: string }}) {
 }
 ```
 
-**15.3 ICS feed**
+### 15.3 ICS feed
+
 ```ts
 // app/api/calendar/[secret]/route.ts
 import ical from 'ical-generator'
@@ -746,7 +802,8 @@ export async function GET(_: Request, { params }: { params: { secret: string } }
 }
 ```
 
-**15.4 Upstash rate limit**
+### 15.4 Upstash rate limit
+
 ```ts
 // middleware.ts excerpt
 import { Ratelimit } from '@upstash/ratelimit'
@@ -760,14 +817,16 @@ export async function middleware(req: Request) {
 }
 ```
 
-**15.5 Sentry init**
+### 15.5 Sentry init
+
 ```ts
 // sentry.client.config.ts & sentry.server.config.ts auto-generated by wizard
 import * as Sentry from '@sentry/nextjs'
 Sentry.init({ dsn: process.env.SENTRY_DSN!, tracesSampleRate: 0.2, replaysSessionSampleRate: 0.1 })
 ```
 
-**15.6 Clerk webhook handler**
+### 15.6 Clerk webhook handler
+
 ```ts
 // apps/web/src/app/api/webhooks/clerk/route.ts
 import { headers } from 'next/headers'
@@ -819,7 +878,8 @@ export async function POST(req: Request) {
 }
 ```
 
-**15.7 Blob upload URL route**
+### 15.7 Blob upload URL route
+
 ```ts
 // apps/web/src/app/api/blob/upload/route.ts
 import { createUploadUrl } from '@vercel/blob'
@@ -842,7 +902,8 @@ export async function POST(req: Request) {
 }
 ```
 
-**15.8 Mux direct upload server action**
+### 15.8 Mux direct upload server action
+
 ```ts
 // apps/web/src/app/api/mux/direct-upload/route.ts
 import Mux from '@mux/mux-node'
@@ -873,7 +934,8 @@ export async function POST(req: Request) {
 }
 ```
 
-**15.9 Inngest function for enrollment**
+### 15.9 Inngest function for enrollment
+
 ```ts
 // apps/web/src/inngest/functions/user-enrolled.ts
 import { inngest } from '@/lib/inngest'
@@ -908,7 +970,8 @@ export const userEnrolled = inngest.createFunction(
 )
 ```
 
-**15.10 Security headers middleware**
+### 15.10 Security headers middleware
+
 ```ts
 // apps/web/src/middleware.ts (security section)
 import { NextResponse } from 'next/server'
@@ -935,7 +998,8 @@ export function middleware(request: Request) {
 }
 ```
 
-**15.11 GitHub Actions CI workflow**
+### 15.11 GitHub Actions CI workflow
+
 ```yaml
 # .github/workflows/ci.yml
 name: CI
@@ -962,7 +1026,8 @@ jobs:
       - run: pnpm turbo run e2e --filter=apps/web -- --reporter=list
 ```
 
-**15.12 Inngest & Resend clients**
+### 15.12 Inngest & Resend clients
+
 ```ts
 // apps/web/src/lib/inngest.ts
 import { Inngest } from 'inngest'
@@ -980,7 +1045,8 @@ import { Resend } from 'resend'
 export const resend = new Resend(process.env.RESEND_API_KEY)
 ```
 
-**15.13 Welcome email template**
+### 15.13 Welcome email template
+
 ```tsx
 // apps/web/emails/welcome-email.tsx
 import {
@@ -1032,11 +1098,17 @@ export default function WelcomeEmail({ userName, courseTitle }: WelcomeEmailProp
 
 ## 16) Milestones & Timeline (30/60/90)
 
-**Days 1–30 (M1)**: Auth + schema + Instructor Studio + uploads (Blob/Mux) → seed first course.
+### Days 1–30 (M1)
 
-**Days 31–60 (M2)**: Marketplace + Student dashboard + Course viewer + Progress + Calendar.
+Auth + schema + Instructor Studio + uploads (Blob/Mux) → seed first course.
 
-**Days 61–90 (M3)**: PostHog analytics, email notifications via Inngest/Resend, forums v1, Sentry hardening, tests/CI.
+### Days 31–60 (M2)
+
+Marketplace + Student dashboard + Course viewer + Progress + Calendar.
+
+### Days 61–90 (M3)
+
+PostHog analytics, email notifications via Inngest/Resend, forums v1, Sentry hardening, tests/CI.
 
 ---
 
@@ -1085,8 +1157,10 @@ pnpm prisma migrate status
 # seed baseline instructor/course data
 pnpm prisma db seed
 ```
-- If Postgres is remote ensure the IP is allow‑listed; for local development you can use `docker run --name actium-pg -e POSTGRES_PASSWORD=postgres -p 5432:5432 -d postgres:16`.
-- Rerun `pnpm prisma migrate deploy` any time new migrations are added; `pnpm prisma migrate reset --force` is handy to rebuild your dev DB from scratch.
+
+   - If Postgres is remote ensure the IP is allow‑listed; for local development you can use `docker run --name actium-pg -e POSTGRES_PASSWORD=postgres -p 5432:5432 -d postgres:16`.
+   - Rerun `pnpm prisma migrate deploy` any time new migrations are added; `pnpm prisma migrate reset --force` is handy to rebuild your dev DB from scratch.
+
 3. Start the dev server with `pnpm turbo dev --filter=apps/web` and verify Clerk sign-in, instructor routes, and student dashboard load.
 4. Trigger the Clerk webhook locally via `clerk events send user.created` and confirm Prisma users sync.
 5. Use the Blob upload endpoint to attach a PDF to a lesson and the Mux upload endpoint to ingest a sample video; check the resources appear in the course builder.
