@@ -1070,7 +1070,23 @@ export default function WelcomeEmail({ userName, courseTitle }: WelcomeEmailProp
 ## 20) Immediate Next Steps (from fresh clone)
 
 1. Copy `.env.example` → `.env.local` (file lives at repo root) and populate the variables listed in **§9.1** for development.
-2. Run `pnpm install`, then `pnpm prisma migrate deploy` and `pnpm prisma db seed` to ensure the schema & sample data are in place.
+2. Run the dependency/install + database priming commands to make sure the schema and sample data are ready:
+
+```bash
+# dependencies
+pnpm install
+
+# database migrations (uses DATABASE_URL from .env.local)
+pnpm prisma migrate deploy
+
+# optional: inspect the generated SQL
+pnpm prisma migrate status
+
+# seed baseline instructor/course data
+pnpm prisma db seed
+```
+- If Postgres is remote ensure the IP is allow‑listed; for local development you can use `docker run --name actium-pg -e POSTGRES_PASSWORD=postgres -p 5432:5432 -d postgres:16`.
+- Rerun `pnpm prisma migrate deploy` any time new migrations are added; `pnpm prisma migrate reset --force` is handy to rebuild your dev DB from scratch.
 3. Start the dev server with `pnpm turbo dev --filter=apps/web` and verify Clerk sign-in, instructor routes, and student dashboard load.
 4. Trigger the Clerk webhook locally via `clerk events send user.created` and confirm Prisma users sync.
 5. Use the Blob upload endpoint to attach a PDF to a lesson and the Mux upload endpoint to ingest a sample video; check the resources appear in the course builder.
