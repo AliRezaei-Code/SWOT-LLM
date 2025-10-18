@@ -378,6 +378,44 @@ main()
 pnpm prisma db seed
 ```
 
+**1.6 Generate client & prime databases**
+- For each environment (`dev`, `staging`, `prod`) run the migration against the corresponding `DATABASE_URL`.
+
+```bash
+# Development
+export DATABASE_URL='postgresql://...dev'
+pnpm prisma migrate deploy
+pnpm prisma generate
+
+# Staging
+export DATABASE_URL='postgresql://...staging'
+pnpm prisma migrate deploy
+
+# Production
+export DATABASE_URL='postgresql://...prod'
+pnpm prisma migrate deploy
+```
+
+```ts
+// apps/web/src/lib/db.ts
+import { PrismaClient } from '@prisma/client'
+
+declare global {
+  // eslint-disable-next-line no-var
+  var prisma: PrismaClient | undefined
+}
+
+export const db =
+  global.prisma ??
+  new PrismaClient({
+    log: process.env.NODE_ENV === 'development' ? ['query', 'error', 'warn'] : ['error'],
+  })
+
+if (process.env.NODE_ENV !== 'production') {
+  global.prisma = db
+}
+```
+
 ---
 
 ## 2) Authentication & RBAC with Clerk (Day 2–3)
@@ -924,6 +962,72 @@ jobs:
       - run: pnpm turbo run e2e --filter=apps/web -- --reporter=list
 ```
 
+**15.12 Inngest & Resend clients**
+```ts
+// apps/web/src/lib/inngest.ts
+import { Inngest } from 'inngest'
+
+export const inngest = new Inngest({
+  id: 'actium-training-platform',
+  eventKey: process.env.INNGEST_EVENT_KEY,
+})
+```
+
+```ts
+// apps/web/src/lib/resend.ts
+import { Resend } from 'resend'
+
+export const resend = new Resend(process.env.RESEND_API_KEY)
+```
+
+**15.13 Welcome email template**
+```tsx
+// apps/web/emails/welcome-email.tsx
+import {
+  Body,
+  Container,
+  Head,
+  Html,
+  Link,
+  Preview,
+  Section,
+  Text,
+} from '@react-email/components'
+
+type WelcomeEmailProps = {
+  userName: string
+  courseTitle: string
+}
+
+const baseUrl = process.env.NEXT_PUBLIC_APP_URL ?? 'https://actium.dev'
+
+export default function WelcomeEmail({ userName, courseTitle }: WelcomeEmailProps) {
+  return (
+    <Html>
+      <Head />
+      <Preview>Welcome aboard — your Actium training cohort is ready.</Preview>
+      <Body style={{ backgroundColor: '#0f172a', color: '#e2e8f0', fontFamily: 'sans-serif' }}>
+        <Container style={{ maxWidth: '560px', margin: '0 auto', padding: '32px' }}>
+          <Section style={{ marginBottom: '24px' }}>
+            <Text style={{ fontSize: '20px', fontWeight: 600 }}>Hi {userName.split(' ')[0]},</Text>
+            <Text>
+              You&apos;re confirmed for <strong>{courseTitle}</strong>. Log in to review the syllabus,
+              schedule your first live session, and download the pre-read checklist.
+            </Text>
+            <Text>
+              Get started: <Link href={`${baseUrl}/dashboard`}>{baseUrl}/dashboard</Link>
+            </Text>
+          </Section>
+          <Section style={{ fontSize: '14px', color: '#94a3b8' }}>
+            <Text>— The Actium Training Team</Text>
+          </Section>
+        </Container>
+      </Body>
+    </Html>
+  )
+}
+```
+
 ---
 
 ## 16) Milestones & Timeline (30/60/90)
@@ -960,3 +1064,14 @@ jobs:
 - **Scripts** in `package.json`: `dev`, `build`, `typecheck`, `lint`, `test`, `e2e`, `db:migrate`, `db:studio`.
 - **DX**: Prettier, ESLint strict, `@total-typescript/ts-reset`, Git hooks with `lefthook`.
 - **Docs**: `/docs/` with ADRs and incident template.
+
+---
+
+## 20) Immediate Next Steps (from fresh clone)
+
+1. Copy `.env.example` → `.env.local` and populate the variables listed in **§9.1** for development.
+2. Run `pnpm install`, then `pnpm prisma migrate deploy` and `pnpm prisma db seed` to ensure the schema & sample data are in place.
+3. Start the dev server with `pnpm turbo dev --filter=apps/web` and verify Clerk sign-in, instructor routes, and student dashboard load.
+4. Trigger the Clerk webhook locally via `clerk events send user.created` and confirm Prisma users sync.
+5. Use the Blob upload endpoint to attach a PDF to a lesson and the Mux upload endpoint to ingest a sample video; check the resources appear in the course builder.
+6. Manually emit `user/enrolled` via Inngest Dev Server (`pnpm inngest dev`) to confirm Resend delivers the Welcome email and Sentry/PostHog capture the flow.
