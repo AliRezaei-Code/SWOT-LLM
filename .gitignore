@@ -1,0 +1,3 @@
+# Node modules should never be committed
+node_modules/
+server/node_modules/
