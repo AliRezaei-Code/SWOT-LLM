@@ -1,0 +1,9 @@
+/node_modules
+/.next
+/out
+.env
+.next/cache
+prisma/migrations/*/steps.json
+prisma/dev.db
+coverage
+.DS_Store

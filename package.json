@@ -1,0 +1,12 @@
+{
+  "name": "swot-chatbot-root",
+  "private": true,
+  "version": "0.0.0",
+  "packageManager": "pnpm@8.15.0",
+  "scripts": {
+    "dev": "pnpm --filter swot-chatbot-phase1 dev",
+    "build": "pnpm --filter swot-chatbot-phase1 build",
+    "lint": "pnpm --filter swot-chatbot-phase1 lint",
+    "test": "pnpm --filter swot-chatbot-phase1 test"
+  }
+}
